@@ -1,12 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+﻿using BusinessLogic.Managers;
 using BusinessLogic.Models;
-using BusinessLogic.Managers;
+using Microsoft.AspNetCore.Mvc;
+using Services.Models;
 
 namespace PatientAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class PatientsController : ControllerBase
     {
         private readonly PatientManager _manager;
@@ -71,5 +71,22 @@ namespace PatientAPI.Controllers
 
             return NoContent();
         }
+
+        [HttpPost]
+        [Route("assign-gift")]
+        public ActionResult<Electronic> GetGift([FromBody] Patient patient)
+        {
+            // Puedes reutilizar el _manager si es la misma instancia de PatientManager
+            if (patient == null)
+                return BadRequest("Patient data is required.");
+
+            var gift = _manager.AssignAGiftForStudent(patient);
+
+            if (gift == null || string.IsNullOrEmpty(gift.Name))
+                return NotFound("No gift could be assigned.");
+
+            return Ok(gift);
+        }
+
     }
 }

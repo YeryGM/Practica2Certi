@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BusinessLogic.Models;
+using Services.Models;
 
 namespace BusinessLogic.Managers
 {
@@ -86,5 +87,24 @@ namespace BusinessLogic.Managers
         {
             return _bloodGroups[_random.Next(_bloodGroups.Length)];
         }
+
+        public Electronic AssignAGiftForStudent(Patient patient)
+        {
+            Electronic assignedGift = new Electronic();
+            if (patient.Name == "Yery")
+            {
+                GiftManager gm = new GiftManager();
+                List<Electronic> giftList = gm.GetGiftList();
+
+                if (giftList.Count > 0)
+                {
+                    Random random = new Random();
+                    int index = random.Next(giftList.Count);
+                    assignedGift = giftList[index];
+                }
+            }
+            return assignedGift;
+        }
+
     }
 }
