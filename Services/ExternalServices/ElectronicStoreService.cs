@@ -12,10 +12,6 @@ namespace Services.ExternalServices
     public class ElectronicStoreService
     {
 
-        public ElectronicStoreService()
-        {
-            //_configuration = new ConfigurationBuilder().Build();
-        }
 
         public async Task<List<Electronic>> GetAllElectronicItems()
         {
