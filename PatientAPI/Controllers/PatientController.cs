@@ -2,6 +2,7 @@
 using BusinessLogic.Models;
 using Microsoft.AspNetCore.Mvc;
 using Services.Models;
+using Serilog;
 
 namespace PatientAPI.Controllers
 {
@@ -11,11 +12,11 @@ namespace PatientAPI.Controllers
     {
         private readonly PatientManager _manager;
 
-        public PatientsController()
+        public PatientsController(ILogger<PatientsController> logger)
         {
-            // Ruta relativa al archivo de pacientes
             _manager = new PatientManager("patients.txt");
         }
+
 
         // GET: api/patients
         [HttpGet]
@@ -25,15 +26,24 @@ namespace PatientAPI.Controllers
         }
 
         // GET: api/patients/{ci}
-        [HttpGet("{ci}")]
+        [HttpGet]
+        [Route("{ci}")]
         public ActionResult<Patient> GetByCI(string ci)
         {
-            var patient = _manager.GetPatientByCI(ci);
-            if (patient == null)
-                return NotFound("Patient not found.");
+            Log.Information("Buscando paciente con CI: {Ci}", ci);
 
+            var patient = _manager.GetPatientByCI(ci);
+
+            if (patient == null)
+            {
+                Log.Error("Paciente no encontrado con CI: {Ci}", ci);
+                return NotFound();
+            }
+
+            Log.Information("Paciente encontrado: {Name}", patient.Name);
             return Ok(patient);
         }
+
 
         // POST: api/patients
         [HttpPost]
@@ -62,31 +72,46 @@ namespace PatientAPI.Controllers
         }
 
         // DELETE: api/patients/{ci}
-        [HttpDelete("{ci}")]
-        public ActionResult Delete(string ci)
+        [HttpDelete]
+        [Route("{ci}")]
+        public IActionResult Delete(string ci)
         {
-            var success = _manager.DeletePatient(ci);
-            if (!success)
-                return NotFound("Patient not found.");
+            Log.Information("Solicitud para eliminar paciente con CI: {Ci}", ci);
 
+            var deleted = _manager.DeletePatient(ci);
+            if (!deleted)
+            {
+                Log.Error("No se pudo eliminar el paciente con CI: {Ci}", ci);
+                return NotFound();
+            }
+
+            Log.Information("Paciente con CI {Ci} eliminado correctamente", ci);
             return NoContent();
         }
+
+
+
+
+        // Assignar un regalo a un paciente basado en el nombre "Yery" >:)
 
         [HttpPost]
         [Route("assign-gift")]
         public ActionResult<Electronic> GetGift([FromBody] Patient patient)
         {
-            // Puedes reutilizar el _manager si es la misma instancia de PatientManager
-            if (patient == null)
-                return BadRequest("Patient data is required.");
+            Log.Information("Solicitud de asignación de regalo para {Name}", patient.Name);
 
             var gift = _manager.AssignAGiftForStudent(patient);
 
             if (gift == null || string.IsNullOrEmpty(gift.Name))
+            {
+                Log.Error("No se pudo asignar un regalo a {Name}", patient.Name);
                 return NotFound("No gift could be assigned.");
+            }
 
+            Log.Information("Regalo {Gift} asignado a {Name}", gift.Name, patient.Name);
             return Ok(gift);
         }
+
 
     }
 }
